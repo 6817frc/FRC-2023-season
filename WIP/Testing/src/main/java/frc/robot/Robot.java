@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import static edu.wpi.first.wpilibj.DoubleSolenoid.Value.*;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+
 import java.lang.Math;
 import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.Joystick;
@@ -26,6 +30,8 @@ import edu.wpi.first.networktables.NetworkTableInstance;
  * arcade steering.
  */
 public class Robot extends TimedRobot {
+  private final DoubleSolenoid Left = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
+  private final DoubleSolenoid Right = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
   private final Spark leftFront = new Spark(0); //variable for front left motor
   private final Spark leftBack = new Spark(1);
   private final Spark rightFront = new Spark(3);
