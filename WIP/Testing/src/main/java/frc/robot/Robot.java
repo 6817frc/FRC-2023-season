@@ -30,8 +30,8 @@ import edu.wpi.first.networktables.NetworkTableInstance;
  * arcade steering.
  */
 public class Robot extends TimedRobot {
-  private final DoubleSolenoid Left = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
-  private final DoubleSolenoid Right = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
+  private final DoubleSolenoid leftClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
+  private final DoubleSolenoid rightClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
   private final Spark leftFront = new Spark(0); //variable for front left motor
   private final Spark leftBack = new Spark(1);
   private final Spark rightFront = new Spark(3);
@@ -65,6 +65,7 @@ public class Robot extends TimedRobot {
     // That means that the Y axis drives forward
     // and backward, and the X turns left and right.
     robotDrive.arcadeDrive((-logiController.getRawAxis(5)),(logiController.getRawAxis(4)/1.5));
-   
+    leftClaw.set((logiController.getRawButton(5)?kForward:kReverse));
+    rightClaw.set((logiController.getRawButton(5)?kForward:kReverse));
   }
 }
