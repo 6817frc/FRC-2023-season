@@ -30,6 +30,8 @@ public class Robot extends TimedRobot {
   private final DifferentialDrive robotDrive = new DifferentialDrive (leftGroup, rightGroup);
   private final Joystick m_stick = new Joystick(0);
   private final XboxController logiController = new XboxController(1); // 1 is the USB Port to be used as indicated on the Driver Station
+  boolean closeLeftClaw = true;
+  boolean closeRightClaw = true;
   String autoName="low goal";
   @Override
   public void robotInit() {
@@ -50,8 +52,16 @@ public class Robot extends TimedRobot {
     // Drive with arcade drive.
     // That means that the Y axis drives forward
     // and backward, and the X turns left and right.
+
+
     robotDrive.arcadeDrive((-logiController.getRawAxis(5)),(logiController.getRawAxis(4)/1.5));
-    leftClaw.set((logiController.getRawButton(5)?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
-    rightClaw.set((logiController.getRawButton(5)?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
+    if (logiController.getAButtonPressed()) {
+      closeLeftClaw = !closeLeftClaw;
+    }
+    if (logiController.getXButtonPressed()) {
+      closeRightClaw = !closeRightClaw;
+    }
+    leftClaw.set((closeLeftClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
+    rightClaw.set((closeRightClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
   }
 }
