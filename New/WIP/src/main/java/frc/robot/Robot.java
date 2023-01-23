@@ -25,6 +25,8 @@ public class Robot extends TimedRobot {
   private final Spark leftBack = new Spark(1);
   private final Spark rightFront = new Spark(3);
   private final Spark rightBack = new Spark(2);
+  private final Spark ElevatorMotor1 = new Spark(4); //4 is a temporary placement for wiring
+  private final Spark ElevatorMotor2 = new Spark(5); //5 is also temporary
   private final MotorControllerGroup leftGroup = new MotorControllerGroup(leftFront, leftBack);
   private final MotorControllerGroup rightGroup = new MotorControllerGroup(rightFront, rightBack);
   private final DifferentialDrive robotDrive = new DifferentialDrive (leftGroup, rightGroup);
