@@ -15,6 +15,9 @@ import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
+
 
 /**
  * This is a demo program showing the use of the DifferentialDrive class. Runs the motors with
@@ -23,6 +26,7 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 public class Robot extends TimedRobot {
   private final DoubleSolenoid leftClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
   private final DoubleSolenoid rightClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
+  private final AHRS gyro = new AHRS(SPI.Port.kMXP);
   private final Spark leftFront = new Spark(0); //variable for front left motor
   private final Spark leftBack = new Spark(1);
   private final Spark rightFront = new Spark(3);
