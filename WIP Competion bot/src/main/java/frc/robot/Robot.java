@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.InvertType;
+import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -11,16 +15,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
-import edu.wpi.first.wpilibj.motorcontrol.VictorSP;
-import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
-import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
-
-import javax.swing.GroupLayout;
-
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.GroupMotorControllers;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 
 /**
@@ -30,13 +24,13 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 public class Robot extends TimedRobot {
   private final DoubleSolenoid leftClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
   private final DoubleSolenoid rightClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
-  private final PWMVictorSPX leftFront = new PWMVictorSPX(4); //variable for front left motor
-  private final PWMVictorSPX leftBack = new PWMVictorSPX(1);
-  private final PWMVictorSPX rightFront = new PWMVictorSPX(3);
-  private final PWMVictorSPX rightBack = new PWMVictorSPX(2);
-  private final PWMVictorSPX ElevatorMotor1 = new PWMVictorSPX(6); //1 is a temporary placement for wiring
-  private final PWMVictorSPX ElevatorMotor2 = new PWMVictorSPX(5); //2 is also temporary
-  private final MotorControllerGroup leftGroup = new MotorControllerGroup(leftFront, leftBack);
+  private final WPI_VictorSPX leftFront =  new WPI_VictorSPX(1); //variable for front left motor
+  private final WPI_VictorSPX leftBack = new WPI_VictorSPX(2);
+  private final WPI_VictorSPX rightFront =  new WPI_VictorSPX(3);
+  private final WPI_VictorSPX rightBack =  new WPI_VictorSPX(4);
+  private final WPI_VictorSPX ElevatorMotor1 =  new WPI_VictorSPX(6); //1 is a temporary placement for wiring
+  private final WPI_VictorSPX ElevatorMotor2 =  new WPI_VictorSPX(5); //2 is also temporary
+  private final MotorControllerGroup leftGroup = new MotorControllerGroup( leftFront, leftBack);
   private final MotorControllerGroup rightGroup = new MotorControllerGroup(rightFront, rightBack);
   private final DifferentialDrive robotDrive = new DifferentialDrive (leftGroup, rightGroup);
   private final Joystick m_stick = new Joystick(0);
@@ -50,10 +44,36 @@ public class Robot extends TimedRobot {
     // We need to invert one side of the drivetrain so that positive voltages
     // result in both sides moving forward. Depending on how your robot's
     // gearbox is constructed, you might have to invert the left side instead.
+    
     rightBack.setInverted(true);
     rightFront.setInverted(true);
     robotDrive.setSafetyEnabled(true);
+  
+    /*
+    rightFront.configFactoryDefault();
+    rightBack.configFactoryDefault();
+    leftFront.configFactoryDefault();
+    leftBack.configFactoryDefault();
+
+    // set up followers
+    rightBack.follow(rightFront);
+    leftBack.follow(leftFront);
+
+    // [3] flip values so robot moves forward when stick-forward/LEDs-green
+    rightFront.setInverted(true); // !< Update this
+    leftFront.setInverted(false); // !< Update this
     
+     // set the invert of the followers to match their respective master controllers
+    
+      rightBack.setInverted(InvertType.FollowMaster);
+      leftBack.setInverted(InvertType.FollowMaster);
+
+      
+      //[4] adjust sensor phase so sensor moves positive when Talon LEDs are green
+      
+      rightFront.setSensorPhase(true);
+      leftFront.setSensorPhase(true);
+      */
   }
   @Override
   public void teleopInit () {
