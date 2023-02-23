@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.SPI;
  * arcade steering.
  */
 public class Robot extends TimedRobot {
+  private static double speedIncrement = 1;
   private final DoubleSolenoid leftClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
   private final DoubleSolenoid rightClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
   private final AHRS gyro = new AHRS(SPI.Port.kMXP);
@@ -50,6 +51,7 @@ public class Robot extends TimedRobot {
     rightBack.setInverted(true);
     rightFront.setInverted(true);
     robotDrive.setSafetyEnabled(true);
+  
     
   }
   @Override
@@ -63,12 +65,18 @@ public class Robot extends TimedRobot {
     // and backward, and the X turns left and right.
 
 
-    robotDrive.arcadeDrive((-logiController.getRawAxis(5)),(logiController.getRawAxis(4)/1.5));
+    robotDrive.arcadeDrive((-logiController.getRawAxis(5)*speedIncrement),(-logiController.getRawAxis(4)*speedIncrement));
     if (logiController.getAButtonPressed()) {
       closeLeftClaw = !closeLeftClaw;
     }
     if (logiController.getXButtonPressed()) {
       closeRightClaw = !closeRightClaw;
+    }
+    if (logiController.getBButtonPressed()) {
+    	speedIncrement= 0.5;
+    }
+    if (logiController.getYButtonPressed()) {
+    	speedIncrement= 1;
     }
     leftClaw.set((closeLeftClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
     rightClaw.set((closeRightClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
