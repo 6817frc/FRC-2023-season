@@ -6,12 +6,14 @@ package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
@@ -28,14 +30,15 @@ public class Robot extends TimedRobot {
   private final WPI_VictorSPX leftBack = new WPI_VictorSPX(2);
   private final WPI_VictorSPX rightFront =  new WPI_VictorSPX(3);
   private final WPI_VictorSPX rightBack =  new WPI_VictorSPX(4);
-  private final WPI_VictorSPX ElevatorMotor1 =  new WPI_VictorSPX(6); //1 is a temporary placement for wiring
-  private final WPI_VictorSPX ElevatorMotor2 =  new WPI_VictorSPX(5); //2 is also temporary
+  private final WPI_TalonSRX ElevatorMotor1 =  new WPI_TalonSRX(0); //1 is a temporary placement for wiring
+  private final WPI_TalonSRX ElevatorMotor2 =  new WPI_TalonSRX(2); //2 is also temporary
   private final MotorControllerGroup leftGroup = new MotorControllerGroup( leftFront, leftBack);
   private final MotorControllerGroup rightGroup = new MotorControllerGroup(rightFront, rightBack);
   private final DifferentialDrive robotDrive = new DifferentialDrive (leftGroup, rightGroup);
   private final Joystick m_stick = new Joystick(0);
   private final XboxController logiController = new XboxController(1); // 1 is the USB Port to be used as indicated on the Driver Station
-  
+  Timer timer = new Timer();
+
   boolean closeLeftClaw = true;
   boolean closeRightClaw = true;
   String autoName="low goal";
@@ -76,7 +79,23 @@ public class Robot extends TimedRobot {
       */
   }
   @Override
+  public void autonomousInit () {
+  timer.reset();
+  timer.start();
+  }
+
+  @Override
+  public void autonomousPeriodic() {
+    if (timer.get() < 2) {
+      robotDrive.arcadeDrive(0, 0.25);
+    } else {
+      robotDrive.arcadeDrive(0, 0);
+    }
+  }
+
+  @Override
   public void teleopInit () {
+
   }
 
   @Override
@@ -86,7 +105,9 @@ public class Robot extends TimedRobot {
     // and backward, and the X turns left and right.
 
 
-    robotDrive.arcadeDrive((-logiController.getRawAxis(5)),(logiController.getRawAxis(4)/1.5));
+    robotDrive.arcadeDrive(-m_stick.getY(), -m_stick.getZ());
+    ElevatorMotor1.set(-logiController.getRawAxis(5));
+    ElevatorMotor2.set(-logiController.getRawAxis(1));
     if (logiController.getAButtonPressed()) {
       closeLeftClaw = !closeLeftClaw;
     }
