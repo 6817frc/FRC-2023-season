@@ -45,6 +45,7 @@ public class Robot extends TimedRobot {
   private final XboxController logiController = new XboxController(1); // 1 is the USB Port to be used as indicated on the Driver Station
   Timer timer = new Timer();
   private final AHRS balance = new AHRS(SPI.Port.kMXP);;
+  private final int dockingTolerance = 5;
 
   boolean closeLeftClaw = true;
   boolean closeRightClaw = true;
@@ -99,11 +100,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    if (timer.get() < 2) {
-      robotDrive.arcadeDrive(0, 0.25);
-    } else {
-      robotDrive.arcadeDrive(0, 0);
-    }
+    // if (timer.get() < 2) {
+    //   robotDrive.arcadeDrive(0, 0.25);
+    // } else {
+    //   robotDrive.arcadeDrive(0, 0);
+    // }
+    docking();
   }
 
   @Override
@@ -133,5 +135,25 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("DB/Slider 1", balance.getRoll());
     SmartDashboard.putNumber("DB/Slider 2", balance.getYaw());
     
+  }
+
+  public void docking() {
+    float angle = balance.getPitch();
+    while ((balance.getPitch() + angle) > 15) {
+      robotDrive.arcadeDrive(0.25, 0);
+    }
+    robotDrive.arcadeDrive(0, 0);
+    
+    while (balance.getPitch() <= angle) {
+      robotDrive.arcadeDrive(0.15, 0);
+    }
+    robotDrive.arcadeDrive(0, 0);
+
+    if (balance.getPitch() < -dockingTolerance) {
+      while (balance.getPitch() >= angle) {
+        robotDrive.arcadeDrive(-0.125, 0);
+      }
+      robotDrive.arcadeDrive(0, 0);
+    }
   }
 }
