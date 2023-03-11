@@ -9,6 +9,8 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -17,6 +19,10 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import com.kauailabs.navx.frc.AHRS;
+import edu.wpi.first.wpilibj.SPI;
 
 
 /**
@@ -38,10 +44,12 @@ public class Robot extends TimedRobot {
   private final Joystick m_stick = new Joystick(0);
   private final XboxController logiController = new XboxController(1); // 1 is the USB Port to be used as indicated on the Driver Station
   Timer timer = new Timer();
+  private final AHRS balance = new AHRS(SPI.Port.kMXP);;
 
   boolean closeLeftClaw = true;
   boolean closeRightClaw = true;
   String autoName="low goal";
+  private NetworkTable datatable;
   @Override
   public void robotInit() {
     // We need to invert one side of the drivetrain so that positive voltages
@@ -51,6 +59,10 @@ public class Robot extends TimedRobot {
     rightBack.setInverted(true);
     rightFront.setInverted(true);
     robotDrive.setSafetyEnabled(true);
+    NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    datatable = inst.getTable("datatable");
+    String[] aList = {"spot1", "spot2", "spot3"};
+    SmartDashboard.putStringArray("AutoList", aList);
   
     /*
     rightFront.configFactoryDefault();
@@ -82,6 +94,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit () {
   timer.reset();
   timer.start();
+  autoName = SmartDashboard.getString("Auto Selector", "back up");
   }
 
   @Override
@@ -116,5 +129,9 @@ public class Robot extends TimedRobot {
     }
     leftClaw.set((closeLeftClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
     rightClaw.set((closeRightClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
+    SmartDashboard.putNumber("DB/Slider 0", balance.getPitch());
+    SmartDashboard.putNumber("DB/Slider 1", balance.getRoll());
+    SmartDashboard.putNumber("DB/Slider 2", balance.getYaw());
+    
   }
 }
