@@ -1,0 +1,13 @@
+
+*.lock
+*.xml
+*.bin
+*.properties
+*.probe
+*.class
+*.json
+*.dll
+*.pdb
+*.jar
+*.so
+*.6
