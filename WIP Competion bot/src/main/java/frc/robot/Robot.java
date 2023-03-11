@@ -138,20 +138,20 @@ public class Robot extends TimedRobot {
   }
 
   public void docking() {
-    float angle = balance.getPitch();
-    while ((balance.getPitch() + angle) > 15) {
-      robotDrive.arcadeDrive(0.25, 0);
+    float angle = balance.getRoll();
+    while ((balance.getRoll() - angle) > -13) {
+      robotDrive.arcadeDrive(0.75, 0);
     }
     robotDrive.arcadeDrive(0, 0);
     
-    while (balance.getPitch() <= angle) {
-      robotDrive.arcadeDrive(0.15, 0);
+    while (balance.getRoll() <= -angle) {
+      robotDrive.arcadeDrive(0.20, 0);
     }
     robotDrive.arcadeDrive(0, 0);
 
-    if (balance.getPitch() < -dockingTolerance) {
-      while (balance.getPitch() >= angle) {
-        robotDrive.arcadeDrive(-0.125, 0);
+    if (balance.getRoll() < -dockingTolerance) {
+      while (balance.getRoll() >= -angle) {
+        robotDrive.arcadeDrive(-0.20, 0);
       }
       robotDrive.arcadeDrive(0, 0);
     }
