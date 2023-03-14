@@ -13,8 +13,10 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.IterativeRobotBase;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
@@ -31,6 +33,7 @@ import edu.wpi.first.wpilibj.SPI;
  * arcade steering.
  */
 public class Robot extends TimedRobot {
+
   private final Compressor pcm = new Compressor(0, PneumaticsModuleType.CTREPCM);
   private final DoubleSolenoid leftClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
   private final DoubleSolenoid rightClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
@@ -47,9 +50,10 @@ public class Robot extends TimedRobot {
   private final Joystick m_stick = new Joystick(0);
   private final XboxController logiController = new XboxController(1); // 1 is the USB Port to be used as indicated on the Driver Station
   Timer timer = new Timer();
-  private final AHRS balance = new AHRS(SPI.Port.kMXP);;
-  private final int dockingTolerance = 5;
-
+  private final AHRS balance = new AHRS(SPI.Port.kMXP);
+  private final int DOCKING_TOLERANCE = 5;
+  public float angle = 0;
+  public int stage = 0;
   boolean closeLeftClaw = true;
   boolean closeRightClaw = true;
   String autoName="low goal";
@@ -71,7 +75,7 @@ public class Robot extends TimedRobot {
     datatable = inst.getTable("datatable");
     String[] aList = {"spot1", "spot2", "spot3"};
     SmartDashboard.putStringArray("AutoList", aList);
-  
+    
     /*
     rightFront.configFactoryDefault();
     rightBack.configFactoryDefault();
@@ -102,6 +106,7 @@ public class Robot extends TimedRobot {
   public void autonomousInit () {
   timer.reset();
   timer.start();
+  stage = 0;
   autoName = SmartDashboard.getString("Auto Selector", "back up");
   }
 
@@ -112,7 +117,15 @@ public class Robot extends TimedRobot {
     // } else {
     //   robotDrive.arcadeDrive(0, 0);
     // }
-    docking();
+    SmartDashboard.putNumber("DB/Slider0", balance.getRoll());
+    //In this example you can see how docking no long loops with in the function
+    //I believe since we were doing big loops in side of the autonomous function
+    // it slowed the processing down.
+    //The autonomous function is already called periodically(every 10-100ms)
+    //meaning if we put loops inside of the loop it heavily delays our timing and such
+    if (stage<=3){
+      docking(stage);
+    }
   }
 
   @Override
@@ -149,23 +162,44 @@ public class Robot extends TimedRobot {
     
   }
 
-  public void docking() {
-    float angle = balance.getRoll();
-    while ((balance.getRoll() - angle) > -13) {
-      robotDrive.arcadeDrive(0.75, 0);
-    }
-    robotDrive.arcadeDrive(0, 0);
-    
-    while (balance.getRoll() <= -angle) {
-      robotDrive.arcadeDrive(0.20, 0);
-    }
-    robotDrive.arcadeDrive(0, 0);
-
-    if (balance.getRoll() < -dockingTolerance) {
-      while (balance.getRoll() >= -angle) {
-        robotDrive.arcadeDrive(-0.20, 0);
-      }
-      robotDrive.arcadeDrive(0, 0);
+  public void docking(int stage) {
+    switch (stage){                       //a switch case help stage each step of the process , also means we had to remove the stops
+      case 0:                             // case 0 your are just receiving your base angle so you have something to compare to later
+        angle = balance.getRoll();            
+        stage++;                          //After a stage is completed increment the stage count by to to advance to the next
+        break;
+      case 1:
+        //drive until you are on the ramp
+        if ((balance.getRoll() - angle) > -13) {                  //Here I changed the while loops to if statements
+          robotDrive.arcadeDrive(0.75, 0);      //making this run eith each iteration of the autonomous
+        }else{
+          stage++;                                                //After the goal is met you will increment to the next stage agaian.
+        }
+        break;
+        
+      case 2:
+        // Drive until you are somewhat leveled on the ramp
+          if (balance.getRoll() <= -angle) {
+            robotDrive.arcadeDrive(0.20, 0);
+          }else{
+            break;
+          }
+          
+          break;
+      case 3:
+      //back up if necessary
+        if (balance.getRoll() < -DOCKING_TOLERANCE) {
+          if (balance.getRoll() >= -angle) {
+            robotDrive.arcadeDrive(-0.20, 0);
+          }
+         
+        }
+      
+      default:
+      //by default stop robot.
+          robotDrive.arcadeDrive(0.0, 0);
+          break;  
     }
   }
+
 }
