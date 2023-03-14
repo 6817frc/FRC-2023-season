@@ -11,6 +11,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -30,6 +31,7 @@ import edu.wpi.first.wpilibj.SPI;
  * arcade steering.
  */
 public class Robot extends TimedRobot {
+  private final Compressor pcm = new Compressor(0, PneumaticsModuleType.CTREPCM);
   private final DoubleSolenoid leftClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
   private final DoubleSolenoid rightClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
   private final WPI_VictorSPX leftFront =  new WPI_VictorSPX(1); //variable for front left motor
@@ -38,6 +40,7 @@ public class Robot extends TimedRobot {
   private final WPI_VictorSPX rightBack =  new WPI_VictorSPX(4);
   private final WPI_TalonSRX ElevatorMotor1 =  new WPI_TalonSRX(0); //1 is a temporary placement for wiring
   private final WPI_TalonSRX ElevatorMotor2 =  new WPI_TalonSRX(2); //2 is also temporary
+  private final WPI_TalonSRX armMotor = new WPI_TalonSRX(1);
   private final MotorControllerGroup leftGroup = new MotorControllerGroup( leftFront, leftBack);
   private final MotorControllerGroup rightGroup = new MotorControllerGroup(rightFront, rightBack);
   private final DifferentialDrive robotDrive = new DifferentialDrive (leftGroup, rightGroup);
@@ -56,7 +59,11 @@ public class Robot extends TimedRobot {
     // We need to invert one side of the drivetrain so that positive voltages
     // result in both sides moving forward. Depending on how your robot's
     // gearbox is constructed, you might have to invert the left side instead.
-    
+    /*pcm.enableDigital();
+    //pcm.disable();
+    boolean enabled =pcm.enabled();
+    boolean pressureSwitch = pcm.getPressureSwitchValue();
+    double current = pcm.getCurrent(); */
     rightBack.setInverted(true);
     rightFront.setInverted(true);
     robotDrive.setSafetyEnabled(true);
@@ -123,11 +130,16 @@ public class Robot extends TimedRobot {
     robotDrive.arcadeDrive(-m_stick.getY(), -m_stick.getZ());
     ElevatorMotor1.set(-logiController.getRawAxis(5));
     ElevatorMotor2.set(-logiController.getRawAxis(1));
-    if (logiController.getAButtonPressed()) {
+    if (logiController.getLeftBumperPressed()) {
       closeLeftClaw = !closeLeftClaw;
     }
-    if (logiController.getXButtonPressed()) {
+    if (logiController.getRightBumperPressed()) {
       closeRightClaw = !closeRightClaw;
+    }
+    if (logiController.getAButton()) {
+      armMotor.set(1);
+    }if (logiController.getBButton()) {
+      armMotor.set(-1);
     }
     leftClaw.set((closeLeftClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
     rightClaw.set((closeRightClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
