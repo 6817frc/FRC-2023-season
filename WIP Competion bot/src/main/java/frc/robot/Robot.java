@@ -12,6 +12,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -34,12 +35,15 @@ public class Robot extends TimedRobot {
   private final Compressor pcm = new Compressor(0, PneumaticsModuleType.CTREPCM);
   private final DoubleSolenoid leftClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
   private final DoubleSolenoid rightClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
+  private final DigitalInput endLimitSwitch = new DigitalInput(0);
+  private final DigitalInput baseLimitSwitch = new DigitalInput(1);
+  private final DigitalInput ceilingLimitSwitch = new DigitalInput(2);
   private final WPI_VictorSPX leftFront =  new WPI_VictorSPX(1); //variable for front left motor
   private final WPI_VictorSPX leftBack = new WPI_VictorSPX(2);
   private final WPI_VictorSPX rightFront =  new WPI_VictorSPX(3);
   private final WPI_VictorSPX rightBack =  new WPI_VictorSPX(4);
-  private final WPI_TalonSRX ElevatorMotor1 =  new WPI_TalonSRX(0); //1 is a temporary placement for wiring
-  private final WPI_TalonSRX ElevatorMotor2 =  new WPI_TalonSRX(2); //2 is also temporary
+  private final WPI_TalonSRX ElevatorMotor =  new WPI_TalonSRX(0); //1 is a temporary placement for wiring
+  private final WPI_TalonSRX armAxis =  new WPI_TalonSRX(2); //2 is also temporary
   private final WPI_TalonSRX armMotor = new WPI_TalonSRX(1);
   private final MotorControllerGroup leftGroup = new MotorControllerGroup( leftFront, leftBack);
   private final MotorControllerGroup rightGroup = new MotorControllerGroup(rightFront, rightBack);
@@ -69,8 +73,8 @@ public class Robot extends TimedRobot {
     robotDrive.setSafetyEnabled(true);
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     datatable = inst.getTable("datatable");
-    String[] aList = {"spot1", "spot2", "spot3"};
-    SmartDashboard.putStringArray("AutoList", aList);
+    String[] aList = {"middleCone", "middleCube", "blueShortCone", "redShortCone", "blueShortCube", "redShortCone"};
+    SmartDashboard.putStringArray("Auto List", aList);
   
     /*
     rightFront.configFactoryDefault();
@@ -128,8 +132,8 @@ public class Robot extends TimedRobot {
 
 
     robotDrive.arcadeDrive(-m_stick.getY(), -m_stick.getZ());
-    ElevatorMotor1.set(-logiController.getRawAxis(5));
-    ElevatorMotor2.set(-logiController.getRawAxis(1));
+    armAxis.set(-logiController.getRawAxis(5)/10);
+    ElevatorMotor.set(ceilingLimitSwitch.get()?(-logiController.getRawAxis(1)):0);
     if (logiController.getLeftBumperPressed()) {
       closeLeftClaw = !closeLeftClaw;
     }
@@ -137,9 +141,21 @@ public class Robot extends TimedRobot {
       closeRightClaw = !closeRightClaw;
     }
     if (logiController.getAButton()) {
+      if (endLimitSwitch.get()) {
+        // We are going up and top limit is tripped so stop
+        armMotor.set(0);
+    } else {
+        // We are going up but top limit is not tripped so go at commanded speed
       armMotor.set(1);
+    }
     }if (logiController.getBButton()) {
+      if (baseLimitSwitch.get()) {
+        // We are going up and top limit is tripped so stop
+        armMotor.set(0);
+    } else {
+        // We are going up but top limit is not tripped so go at commanded speed
       armMotor.set(-1);
+    }
     }
     leftClaw.set((closeLeftClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
     rightClaw.set((closeRightClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
