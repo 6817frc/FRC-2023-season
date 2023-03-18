@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.InvertType;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
@@ -35,9 +36,9 @@ public class Robot extends TimedRobot {
   private final Compressor pcm = new Compressor(0, PneumaticsModuleType.CTREPCM);
   private final DoubleSolenoid leftClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
   private final DoubleSolenoid rightClaw = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 2, 3);
-  private final DigitalInput endLimitSwitch = new DigitalInput(0);
-  private final DigitalInput baseLimitSwitch = new DigitalInput(1);
-  private final DigitalInput ceilingLimitSwitch = new DigitalInput(2);
+  private final DigitalInput endLimitSwitch = new DigitalInput(1);
+  private final DigitalInput baseLimitSwitch = new DigitalInput(2);
+  private final DigitalInput ceilingLimitSwitch = new DigitalInput(3);
   private final WPI_VictorSPX leftFront =  new WPI_VictorSPX(1); //variable for front left motor
   private final WPI_VictorSPX leftBack = new WPI_VictorSPX(2);
   private final WPI_VictorSPX rightFront =  new WPI_VictorSPX(3);
@@ -68,6 +69,7 @@ public class Robot extends TimedRobot {
     boolean enabled =pcm.enabled();
     boolean pressureSwitch = pcm.getPressureSwitchValue();
     double current = pcm.getCurrent(); */
+    armAxis.setNeutralMode(NeutralMode.Brake);
     rightBack.setInverted(true);
     rightFront.setInverted(true);
     robotDrive.setSafetyEnabled(true);
@@ -132,7 +134,7 @@ public class Robot extends TimedRobot {
 
 
     robotDrive.arcadeDrive(-m_stick.getY(), -m_stick.getZ());
-    armAxis.set(-logiController.getRawAxis(5)/10);
+    armAxis.set(-logiController.getRawAxis(5)/2);
     ElevatorMotor.set(ceilingLimitSwitch.get()?(-logiController.getRawAxis(1)):0);
     if (logiController.getLeftBumperPressed()) {
       closeLeftClaw = !closeLeftClaw;
@@ -141,28 +143,28 @@ public class Robot extends TimedRobot {
       closeRightClaw = !closeRightClaw;
     }
     if (logiController.getAButton()) {
-      if (endLimitSwitch.get()) {
+      if (!endLimitSwitch.get()) {
         // We are going up and top limit is tripped so stop
-        armMotor.set(0);
-    } else {
-        // We are going up but top limit is not tripped so go at commanded speed
-      armMotor.set(1);
-    }
-    }if (logiController.getBButton()) {
-      if (baseLimitSwitch.get()) {
+        armMotor.set(0.25);
+    } }
+    else if (logiController.getBButton()) {
+      if (!baseLimitSwitch.get()) {
         // We are going up and top limit is tripped so stop
-        armMotor.set(0);
-    } else {
-        // We are going up but top limit is not tripped so go at commanded speed
-      armMotor.set(-1);
+        armMotor.set(-0.25);
+    } }
+    else {
+      // We are going up but top limit is not tripped so go at commanded speed
+    armMotor.set(0);
     }
-    }
+
     leftClaw.set((closeLeftClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
     rightClaw.set((closeRightClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
     SmartDashboard.putNumber("DB/Slider 0", balance.getPitch());
     SmartDashboard.putNumber("DB/Slider 1", balance.getRoll());
     SmartDashboard.putNumber("DB/Slider 2", balance.getYaw());
-    
+    SmartDashboard.putString("DB/String 0", "endLimitSwitch:" + endLimitSwitch.get());
+    SmartDashboard.putString("DB/String 1", "baseLimitSwitch:" + baseLimitSwitch.get());
+    SmartDashboard.putString("DB/String 2", "ceilingLimitSwitch:" + ceilingLimitSwitch.get());
   }
 
   public void docking() {
@@ -178,7 +180,7 @@ public class Robot extends TimedRobot {
     robotDrive.arcadeDrive(0, 0);
 
     if (balance.getRoll() < -dockingTolerance) {
-      while (balance.getRoll() >= -angle) {
+      while (balance.getRoll() <= -angle) {
         robotDrive.arcadeDrive(-0.20, 0);
       }
       robotDrive.arcadeDrive(0, 0);

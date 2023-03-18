@@ -62,12 +62,12 @@ public class Robot extends TimedRobot {
     // and backward, and the X turns left and right.
 
     robotDrive.arcadeDrive((-m_stick.getY()*speedIncrement),(-m_stick.getZ()*speedIncrement));
-    if (logiController.getAButtonPressed()) {
+    /*if (logiController.getAButtonPressed()) {
       closeLeftClaw = !closeLeftClaw;
     }
     if (logiController.getXButtonPressed()) {
       closeRightClaw = !closeRightClaw;
-    }
+    } */
     if (logiController.getBButtonPressed()) {
     	speedIncrement= 0.5;
     }
