@@ -10,6 +10,7 @@ import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
+import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Compressor;
@@ -77,6 +78,7 @@ public class Robot extends TimedRobot {
     datatable = inst.getTable("datatable");
     String[] aList = {"middleCone", "middleCube", "blueShortCone", "redShortCone", "blueShortCube", "redShortCone"};
     SmartDashboard.putStringArray("Auto List", aList);
+    PortForwarder.add(5800, "bigbadbobcamera", 5800);
   
     /*
     rightFront.configFactoryDefault();
