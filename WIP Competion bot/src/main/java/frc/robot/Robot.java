@@ -57,6 +57,7 @@ public class Robot extends TimedRobot {
 
   boolean closeLeftClaw = true;
   boolean closeRightClaw = true;
+  boolean ClawOpen = false;
   String autoName="low goal";
   private NetworkTable datatable;
   @Override
@@ -113,13 +114,36 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    // if (timer.get() < 2) {
-    //   robotDrive.arcadeDrive(0, 0.25);
-    // } else {
-    //   robotDrive.arcadeDrive(0, 0);
-    // }
-    docking();
+    if (timer.get() < 3.75 && !endLimitSwitch.get()) {
+      armMotor.set(0.25);
+    } else {
+      armMotor.set(0);
+    }
+
+    if (timer.get() < 4) {
+      armAxis.set(-0.45); 
+    } else {
+      armAxis.set(0); 
+    }
+
+    if (timer.get() < 5) {
+      ElevatorMotor.set(0.75); 
+    } else {
+      ElevatorMotor.set(0); 
+    }
+    
+    if (timer.get() > 5) {
+      leftClaw.set(DoubleSolenoid.Value.kReverse);
+      ClawOpen = !ClawOpen;
+    }
+
+    if(timer.get() > 6 && timer.get() < 9.3) {
+      robotDrive.arcadeDrive(-0.5, 0);
+    }
+
+    //docking();
   }
+
 
   @Override
   public void teleopInit () {
@@ -133,28 +157,26 @@ public class Robot extends TimedRobot {
     // and backward, and the X turns left and right.
 
 
-    robotDrive.arcadeDrive(-m_stick.getY(), -m_stick.getZ());
-    armAxis.set(-logiController.getRawAxis(5)/2);
+    robotDrive.arcadeDrive(-m_stick.getY() * Math.abs(-m_stick.getY()), -m_stick.getZ() * Math.abs(-m_stick.getZ()));
+    armAxis.set(-logiController.getRawAxis(5));
     ElevatorMotor.set(ceilingLimitSwitch.get()?(-logiController.getRawAxis(1)):0);
-    if (logiController.getLeftBumperPressed()) {
+    if (logiController.getRightBumperPressed()) {
       closeLeftClaw = !closeLeftClaw;
     }
-    if (logiController.getRightBumperPressed()) {
+    if (logiController.getLeftBumperPressed()) {
       closeRightClaw = !closeRightClaw;
     }
-    if (logiController.getAButton()) {
-      if (!endLimitSwitch.get()) {
+    if (logiController.getXButton()) {
+      
         // We are going up and top limit is tripped so stop
-        armMotor.set(0.25);
-    } }
-    else if (logiController.getBButton()) {
-      if (!baseLimitSwitch.get()) {
-        // We are going up and top limit is tripped so stop
-        armMotor.set(-0.25);
-    } }
+        armMotor.set(endLimitSwitch.get()?0:0.25);
+    }
+    else if (logiController.getYButton()) {
+      // We are going up and top limit is tripped so stop
+      armMotor.set(baseLimitSwitch.get()?0:-0.25);
+    }
     else {
-      // We are going up but top limit is not tripped so go at commanded speed
-    armMotor.set(0);
+      armMotor.set(0);
     }
 
     leftClaw.set((closeLeftClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
@@ -170,7 +192,7 @@ public class Robot extends TimedRobot {
   public void docking() {
     float angle = balance.getRoll();
     while ((balance.getRoll() - angle) > -13) {
-      robotDrive.arcadeDrive(0.75, 0);
+      robotDrive.arcadeDrive(0.5, 0);
     }
     robotDrive.arcadeDrive(0, 0);
     
