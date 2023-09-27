@@ -61,7 +61,7 @@ public class Robot extends TimedRobot {
     // That means that the Y axis drives forward
     // and backward, and the X turns left and right.
 
-    robotDrive.arcadeDrive((-m_stick.getY()*speedIncrement),(-m_stick.getZ()*speedIncrement));
+    robotDrive.arcadeDrive((-logiController.getRawAxis(5)*speedIncrement),(-logiController.getRawAxis(4)*speedIncrement));
     /*if (logiController.getAButtonPressed()) {
       closeLeftClaw = !closeLeftClaw;
     }
@@ -71,9 +71,19 @@ public class Robot extends TimedRobot {
     if (logiController.getBButtonPressed()) {
     	speedIncrement= 0.5;
     }
-    if (logiController.getYButtonPressed()) {
+    if (logiController.getAButtonPressed()) {
     	speedIncrement= 1;
     }
+    if (logiController.getXButtonPressed()) {
+    	speedIncrement= 0.6667;
+    }
+    if (logiController.getYButtonPressed()) {
+    	speedIncrement= 0.8333;
+    }
+    if (logiController.getRightBumperPressed()) {
+    	speedIncrement= 0.75;
+    }
+
     //leftClaw.set((closeLeftClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
     //rightClaw.set((closeRightClaw?DoubleSolenoid.Value.kForward:DoubleSolenoid.Value.kReverse));
   }

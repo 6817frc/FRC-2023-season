@@ -51,7 +51,6 @@ public class Robot extends TimedRobot {
   private final MotorControllerGroup rightGroup = new MotorControllerGroup(rightFront, rightBack);
   private final DifferentialDrive robotDrive = new DifferentialDrive (leftGroup, rightGroup);
   private final Joystick m_stick = new Joystick(0);
-  private final Joystick m_stick2 = new Joystick(2);
   private final XboxController logiController = new XboxController(1); // 1 is the USB Port to be used as indicated on the Driver Station
   Timer timer = new Timer();
   private static final AHRS balance = new AHRS(SPI.Port.kMXP);;
@@ -77,7 +76,7 @@ public class Robot extends TimedRobot {
     armAxis.setNeutralMode(NeutralMode.Brake);
     rightBack.setInverted(true);
     rightFront.setInverted(true);
-    robotDrive.setSafetyEnabled(false);
+    robotDrive.setSafetyEnabled(true);
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     datatable = inst.getTable("datatable");
     String[] aList = {"middleCone", "middleCube", "blueShortCone", "redShortCone", "blueShortCube", "redShortCone"};
@@ -120,11 +119,6 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    if (timer.get() < 0.5)
-    {
-      leftClaw.set(DoubleSolenoid.Value.kForward);
-      rightClaw.set(DoubleSolenoid.Value.kForward);
-    }
     if (timer.get() < 4.5 && !endLimitSwitch.get()) {
       armMotor.set(0.25);
     } else if (timer.get() > 9.8 && timer.get() < 13) {
@@ -153,26 +147,26 @@ public class Robot extends TimedRobot {
       leftClaw.set(DoubleSolenoid.Value.kReverse);
     }
 
-    // if(timer.get() > 6) {
-    //   if(state == 0){
-    //     robotDrive.arcadeDrive(-0.5, 0);
-    //   }
-    // }
-
-    if(timer.get() > 6 && timer.get() < 13.5) {
-      robotDrive.arcadeDrive(-0.5, 0.15);
-    }else {
-      robotDrive.arcadeDrive(0, 0);
+    if(timer.get() > 6) {
+      if(state == 0){
+        robotDrive.arcadeDrive(-0.5, 0);
+        if((Math.abs(balance.getRoll()))> 13) {
+          state = 1;
+        }
+      }
+      if(state == 1){
+        docking();
+      }
     }
 
     //docking();
   }
 
-  
+
+  @Override
   public void teleopInit () {
     closeLeftClaw = false;
     closeRightClaw = false;
-    robotDrive.close();
   }
 
   @Override
@@ -182,10 +176,7 @@ public class Robot extends TimedRobot {
     // and backward, and the X turns left and right.
 
 
-    //robotDrive.arcadeDrive(-m_stick.getY() * Math.abs(-m_stick.getY()), (-m_stick.getZ() * Math.abs(-m_stick.getZ())*0.8));
-  
-    leftGroup.set(-m_stick.getY() * Math.abs(-m_stick.getY()));
-    rightGroup.set(-m_stick2.getY() * Math.abs(-m_stick2.getY()));
+    robotDrive.arcadeDrive(-m_stick.getY() * Math.abs(-m_stick.getY()), (-m_stick.getZ() * Math.abs(-m_stick.getZ())*0.8));
     armAxis.set(-logiController.getRawAxis(5));
     ElevatorMotor.set(ceilingLimitSwitch.get()?(-logiController.getRawAxis(1)):0);
     if (logiController.getRightBumperPressed()) {
@@ -196,8 +187,8 @@ public class Robot extends TimedRobot {
     }
     if (logiController.getXButton()) {
       
-      // We are going up and top limit is tripped so stop
-      armMotor.set(endLimitSwitch.get()?0:0.25);
+        // We are going up and top limit is tripped so stop
+        armMotor.set(endLimitSwitch.get()?0:0.25);
     }
     else if (logiController.getYButton()) {
       // We are going up and top limit is tripped so stop
@@ -217,22 +208,38 @@ public class Robot extends TimedRobot {
     SmartDashboard.putString("DB/String 2", "ceilingLimitSwitch:" + ceilingLimitSwitch.get());
   }
 
-  // public void docking() {
-  //   float angle = balance.getRoll();
-  //   if ((balance.getRoll() - angle) < -13) {
-  //     robotDrive.arcadeDrive(0.5, 0);
-  //   }
-  //   robotDrive.arcadeDrive(0, 0);
+  public void docking() {
+    float angle = balance.getRoll();
+    if (balance.getRoll() > dockingTolerance) {
+      robotDrive.arcadeDrive(-0.20, 0);
+    } else if (balance.getRoll() < -dockingTolerance) {
+      robotDrive.arcadeDrive(0.20, 0);
+    }
+    else {
+      robotDrive.arcadeDrive(0, 0);
+    }
     
-  //   if (balance.getRoll() >= -angle) {
-  //     robotDrive.arcadeDrive(0.20, 0);
-  //   }
-  //   robotDrive.arcadeDrive(0, 0);
+    //   robotDrive.arcadeDrive(-0.20, 0);
+    // } else {
+    //   robotDrive.arcadeDrive(0, 0);
+    // }
 
-  //   if (balance.getRoll() > -dockingTolerance) {
-  //     robotDrive.arcadeDrive(-0.20, 0);
-  //   } else {
-  //     robotDrive.arcadeDrive(0, 0);
-  //   }
-  // }
+    // if ((balance.getRoll() - angle) < -13) {
+    //   robotDrive.arcadeDrive(0.5, 0);
+    // }
+    // robotDrive.arcadeDrive(0, 0);
+    
+    // if (balance.getRoll() >= -angle) {
+    //   robotDrive.arcadeDrive(0.20, 0);
+    // }
+    // robotDrive.arcadeDrive(0, 0);
+
+    // if (balance.getRoll() > -dockingTolerance) {
+    //   robotDrive.arcadeDrive(-0.20, 0);
+    // } else {
+    //   robotDrive.arcadeDrive(0, 0);
+    // }
+
+     
+  }
 } 
