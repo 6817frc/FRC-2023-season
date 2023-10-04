@@ -57,6 +57,7 @@ public class Robot extends TimedRobot {
   private static final AHRS balance = new AHRS(SPI.Port.kMXP);;
   private final int dockingTolerance = 5;
 
+  
   boolean closeLeftClaw = true;
   boolean closeRightClaw = true;
   String autoName="low goal";
